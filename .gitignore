@@ -1,0 +1,27 @@
+# Environment variables and API secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# IDE settings
+.vscode/
+
+# Logs and temporary files
+*.log
+.DS_Store
+
+# Generated files
+*.tmp

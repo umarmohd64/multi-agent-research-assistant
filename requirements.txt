@@ -1,0 +1,33 @@
+# Core LangChain framework and LCEL Runnables
+langchain
+langchain-core
+
+# OpenAI LLM integration
+langchain-openai
+
+# Multi-agent orchestration and ReAct agent support
+langgraph
+
+# Tavily web search
+tavily-python
+
+# BeautifulSoup-based web scraping and HTML parsing
+beautifulsoup4
+requests
+lxml
+
+# Environment variables and configuration
+python-dotenv
+
+# Structured outputs, validation, and token counting
+pydantic
+tiktoken
+
+# Async HTTP support (useful for concurrent agent/tool calls)
+httpx
+
+# Research workspace UI and Word export
+streamlit>=1.37,<2
+python-docx>=1.1,<2
+markdown-it-py>=3,<5
+rich
