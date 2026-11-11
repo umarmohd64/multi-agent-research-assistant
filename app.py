@@ -543,7 +543,7 @@ def show_report(record, key):
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 key=key, type="primary", use_container_width=True,
             )
-    st.caption(f"Generated {record['date']} · Report and evaluation from your research pipeline")
+    st.caption(f"Generated {record['date']} · Report and evaluation from the research pipeline")
     report = record["result"].get("report", "")
     feedback = record["result"].get("feedback", "")
     if not re.search(r"(?im)^#{0,6}\s*(?:\*\*)?executive summary", report):
