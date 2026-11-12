@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 import uuid
+from base64 import b64encode
 from datetime import datetime
 from io import BytesIO
 from pathlib import Path
@@ -19,6 +20,7 @@ from markdown_it import MarkdownIt
 
 
 ROOT = Path(__file__).resolve().parent
+UI_FONT = b64encode((ROOT / "assets" / "fonts" / "SpaceGrotesk-latin-variable.woff2").read_bytes()).decode("ascii")
 STAGES = {
     "search": ("Search", "Finds current sources"),
     "reader": ("Reader", "Extracts source evidence"),
@@ -174,20 +176,67 @@ def style():
     """
     st.markdown(f"""
     <style>
+    @font-face {{
+      font-family:"Space Grotesk"; font-style:normal; font-weight:300 700; font-display:swap;
+      src:url("data:font/woff2;base64,{UI_FONT}") format("woff2");
+    }}
     .stApp {{
+      --ui-font:"Space Grotesk","Segoe UI",sans-serif;
       --ink:{text}; --muted:{muted}; --panel:{panel}; --surface:{surface};
       --line:{border}; --accent:{accent};
+      --block-gap:1.5rem;
       background:radial-gradient(ellipse at 85% -15%, #7563ee24, transparent 42%),
                  radial-gradient(ellipse at 0% 40%, #22b7bc0d, transparent 35%), {bg};
-      color:var(--ink); font-family:"Segoe UI Variable","Segoe UI",sans-serif;
+      color:var(--ink); font-family:var(--ui-font);
+    }}
+    .stApp :is(h1,h2,h3,h4,h5,h6,p,label,input,textarea,button,select,li,table),
+    .stApp [data-testid="stMarkdownContainer"],
+    .stApp [data-testid="stCaptionContainer"],
+    [data-testid="stSelectboxVirtualDropdown"] {{
+      font-family:"Space Grotesk","Segoe UI",sans-serif;
     }}
     [data-testid="stHeader"] {{background:{bg};}}
     [data-testid="stSidebar"] {{background:{panel}; border-right:1px solid var(--line);}}
+    [data-testid="stSidebarCollapseButton"] {{visibility:visible; opacity:1;}}
+    [data-testid="stSidebarCollapseButton"] button,
+    [data-testid="stExpandSidebarButton"] {{
+      display:inline-flex; align-items:center; justify-content:center;
+      width:32px; height:32px; min-width:32px; padding:0;
+      color:var(--muted); background:transparent;
+      border:0; border-radius:8px; box-shadow:none;
+      transition:color .18s ease,background .18s ease;
+    }}
+    [data-testid="stSidebarCollapseButton"] button:hover,
+    [data-testid="stExpandSidebarButton"]:hover {{
+      color:var(--accent); background:var(--surface);
+    }}
+    [data-testid="stSidebarCollapseButton"] button:focus-visible,
+    [data-testid="stExpandSidebarButton"]:focus-visible {{
+      outline:2px solid var(--accent); outline-offset:2px;
+    }}
+    [data-testid="stSidebarCollapseButton"] button span,
+    [data-testid="stExpandSidebarButton"] span {{color:inherit;}}
+    [data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+    [data-testid="stExpandSidebarButton"] [data-testid="stIconMaterial"] {{
+      font-size:20px; line-height:1;
+    }}
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
     .stApp p, .stApp label, .stApp h1, .stApp h2, .stApp h3,
     .stApp h4, .stApp li {{color:var(--ink);}}
-    .block-container {{max-width:1250px; padding-top:4.5rem; padding-bottom:3rem;}}
-    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{gap:.8rem;}}
+    .block-container {{
+      max-width:1250px; padding:5rem clamp(1.25rem,4vw,4rem) 3.5rem;
+    }}
+    [data-testid="stMain"] [data-testid="stVerticalBlock"] {{gap:var(--block-gap);}}
+    [data-testid="stMain"] [data-testid="stHorizontalBlock"] {{row-gap:var(--block-gap);}}
+    [data-testid="stMarkdownContainer"]:has(> :is(.hero,.tile,.agent-flow,.section-label,.eyebrow,.footer,.brand)) {{
+      margin-bottom:0;
+    }}
+    [data-testid="stWidgetLabel"] {{margin-bottom:.5rem;}}
+    [data-testid="stTabs"] [role="tablist"] {{gap:1.25rem;}}
+    [data-testid="stTabs"] [role="tabpanel"] {{padding-top:1.25rem;}}
+    [data-testid="stTabs"] [role="tabpanel"] p {{line-height:1.75; margin-bottom:1.25rem;}}
+    [data-testid="stTabs"] [role="tabpanel"] li + li {{margin-top:.5rem;}}
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{gap:1rem;}}
     [data-testid="stSidebar"] [role="radiogroup"] label {{
       border:1px solid transparent; border-radius:12px; padding:.55rem .7rem;
       transition:background .2s,border-color .2s;
@@ -202,7 +251,7 @@ def style():
     .brand-icon {{display:grid; place-items:center; width:38px; height:38px; border-radius:13px;
       color:#fff; font-size:21px; background:linear-gradient(135deg,#8274ff,#26bcca);
       box-shadow:0 8px 22px #7064ff45;}}
-    .logo-glyph {{position:relative; font-family:"Segoe UI",sans-serif; font-size:1em; font-weight:800;
+    .logo-glyph {{position:relative; font-family:var(--ui-font); font-size:1em; font-weight:700;
       line-height:1; letter-spacing:-.08em; color:#fff;}}
     .logo-glyph:after {{content:""; position:absolute; width:.2em; height:.2em; border-radius:50%;
       background:#b9ffef; right:-.18em; top:.08em;}}
@@ -214,7 +263,7 @@ def style():
       box-shadow:0 24px 70px #00000012;}}
     .hero:before {{content:""; position:absolute; width:460px; height:460px; right:-130px; top:-190px;
       background:radial-gradient(circle,#8170ff2c,transparent 68%); pointer-events:none;}}
-    .hero-grid {{display:grid; grid-template-columns:1.2fr .8fr; align-items:center; gap:1rem;}}
+    .hero-grid {{display:grid; grid-template-columns:1.2fr .8fr; align-items:center; gap:2rem;}}
     .hero h1 {{font-size:clamp(2.6rem,5vw,4.5rem); line-height:1.04; letter-spacing:-.06em;
       margin:1rem 0 1.2rem; font-weight:730;}}
     .hero h1 [data-heading-text] > span {{color:var(--accent);}}
@@ -223,39 +272,44 @@ def style():
     .hero-meta {{display:flex; gap:1.3rem; flex-wrap:wrap; margin-top:2rem;
       font-size:.7rem; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);}}
     .hero-meta b {{color:var(--ink);}}
-    .orbit {{width:min(100%,290px); aspect-ratio:1; position:relative; margin:auto;}}
+    .orbit {{
+      --particle-teal:{"#65dce0" if dark else "#168e9b"};
+      --particle-violet:{"#aa9bff" if dark else "#7762d9"};
+      width:min(100%,290px); aspect-ratio:1; position:relative; margin:auto;
+    }}
     .orbit-ring {{position:absolute; inset:12%; border:1px solid #8e80e74d; border-radius:50%;}}
     .orbit-ring.second {{inset:23%; border-color:#48cfd54d;}}
-    .orbit-ring.third {{inset:2%; border-style:dashed; animation:spin 35s linear infinite;}}
+    .orbit-ring.third {{inset:2%; border-style:dashed; animation:spin 16s linear infinite reverse;}}
     .orbit-core {{position:absolute; inset:37%; border-radius:50%; display:grid; place-items:center;
       background:linear-gradient(135deg,#8170ef,#29b9c9); color:white; font-size:2rem;
       box-shadow:0 0 50px #8476ff70;}}
+    .orbit-particles {{position:absolute; inset:0; animation:spin 8s linear infinite;}}
     .orbit-dot {{position:absolute; width:13px; height:13px; border-radius:50%;
-      background:#65dce0; box-shadow:0 0 18px #65dce0; top:14%; left:24%;}}
-    .orbit-dot.two {{top:68%; left:83%; background:#aa9bff; box-shadow:0 0 18px #aa9bff;}}
+      background:var(--particle-teal); box-shadow:0 0 18px var(--particle-teal); top:14%; left:24%;}}
+    .orbit-dot.two {{top:68%; left:83%; background:var(--particle-violet); box-shadow:0 0 18px var(--particle-violet);}}
     .orbit-dot.three {{top:81%; left:20%; width:8px; height:8px;}}
     .muted {{color:var(--muted)!important;}}
-    .section-label {{display:flex; align-items:center; gap:.75rem; margin:2rem 0 .4rem;}}
+    .section-label {{display:flex; align-items:center; gap:.75rem; margin:1.5rem 0 0;}}
     .section-label:after {{content:""; height:1px; background:var(--line); flex:1;}}
-    .tile {{position:relative; padding:1.35rem; min-height:150px; border:1px solid var(--line); border-radius:18px;
+    .tile {{position:relative; padding:1.5rem; min-height:180px; border:1px solid var(--line); border-radius:18px;
       background:var(--panel); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;}}
     .tile:hover {{transform:translateY(-4px); border-color:var(--accent); box-shadow:0 12px 30px #7465e41c;}}
     .tile strong {{font-size:1.05rem; color:var(--ink);}}
-    .tile p {{margin:.7rem 0 .35rem;}}
+    .tile p {{margin:1rem 0 .6rem;}}
     .tile-icon {{float:right; color:var(--accent); font-size:1.2rem;}}
-    .agent-flow {{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:1rem 0 1.4rem;}}
-    .agent-node {{position:relative; padding:1.35rem; min-height:160px; border:1px solid var(--line);
+    .agent-flow {{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin:.5rem 0;}}
+    .agent-node {{position:relative; padding:1.5rem; min-height:180px; border:1px solid var(--line);
       border-radius:19px; background:var(--panel); transition:border-color .3s,transform .3s,box-shadow .3s;}}
     .agent-node:hover {{transform:translateY(-3px);}}
     .agent-node.is-active {{border-color:#8f82ff; box-shadow:0 0 0 1px #8f82ff55,0 0 32px #8f82ff28;}}
     .agent-node.is-completed {{border-color:#41bca456;}}
     .agent-node.is-failed {{border-color:#f17d87;}}
-    .agent-node:not(:last-child):after {{content:""; position:absolute; right:-13px; top:49%; width:12px; height:1px;
+    .agent-node:not(:last-child):after {{content:""; position:absolute; right:-17px; top:49%; width:16px; height:1px;
       background:linear-gradient(90deg,#8b7bfd,#44cbd1); z-index:1;}}
     .agent-symbol {{display:grid; place-items:center; width:40px; height:40px; border-radius:13px;
       background:linear-gradient(145deg,#8c7bf32c,#46c8d31b); color:var(--accent); font-size:1.2rem;}}
-    .agent-name {{display:block; color:var(--ink); font-weight:700; margin:.9rem 0 .3rem;}}
-    .agent-desc {{color:var(--muted); font-size:.79rem; line-height:1.4;}}
+    .agent-name {{display:block; color:var(--ink); font-weight:700; margin:1rem 0 .5rem;}}
+    .agent-desc {{color:var(--muted); font-size:.79rem; line-height:1.6;}}
     .status {{font-size:.67rem; font-weight:750; text-transform:uppercase; letter-spacing:.1em;
       margin-top:1rem; display:flex; align-items:center; gap:.45rem;}}
     .status:before {{content:""; display:block; width:7px; height:7px; border-radius:50%; background:currentColor;}}
@@ -283,7 +337,32 @@ def style():
       background:var(--surface); border-color:var(--line); border-radius:10px;
     }}
     [data-baseweb="select"] > div, [data-baseweb="popover"] {{color:var(--ink); background:var(--surface);}}
-    [data-testid="stForm"] {{border:1px solid var(--line); border-radius:20px; padding:1.5rem; background:var(--panel);}}
+    [data-testid="stForm"] {{border:1px solid var(--line); border-radius:20px; padding:2rem; background:var(--panel);}}
+    [data-testid="stForm"] [data-testid="stWidgetLabel"] p {{
+      font-size:.88rem; font-weight:600; letter-spacing:.01em;
+    }}
+    [data-testid="stForm"] :is([data-testid="stTextInputRootElement"],
+      [data-testid="stTextAreaRootElement"], [data-baseweb="input"], [data-baseweb="textarea"]) {{
+      background:var(--surface); border:1px solid var(--line); border-radius:14px;
+      box-shadow:none; overflow:hidden;
+      transition:border-color .18s ease,box-shadow .18s ease;
+    }}
+    [data-testid="stForm"] :is([data-testid="stTextInputRootElement"],
+      [data-testid="stTextAreaRootElement"], [data-baseweb="input"], [data-baseweb="textarea"]):hover {{
+      border-color:var(--muted);
+    }}
+    [data-testid="stForm"] :is([data-testid="stTextInputRootElement"],
+      [data-testid="stTextAreaRootElement"], [data-baseweb="input"], [data-baseweb="textarea"]):focus-within {{
+      border-color:var(--accent); box-shadow:0 0 0 3px #8170ef22;
+    }}
+    [data-testid="stForm"] [data-testid="stTextInputRootElement"] {{min-height:56px;}}
+    [data-testid="stForm"] :is(input,textarea) {{
+      color:var(--ink); caret-color:var(--accent); background:transparent;
+      border:0; border-radius:0; outline:none; box-shadow:none;
+      padding:14px 16px; font-size:.98rem; line-height:1.6;
+    }}
+    [data-testid="stForm"] [data-testid="stTextInput"] input {{min-height:52px;}}
+    [data-testid="stForm"] textarea {{resize:vertical;}}
     [data-testid="stExpander"] {{border:1px solid var(--line); border-radius:14px; background:var(--panel);}}
     [data-testid="stCaptionContainer"] p {{color:var(--muted);}}
     [data-testid="stProgressBar"] > div > div > div {{background:linear-gradient(90deg,#8170ef,#38c6cb);}}
@@ -293,18 +372,36 @@ def style():
     @media(max-width:1100px) {{
       .hero-grid {{grid-template-columns:1fr;}}
       .hero-grid > div:first-child {{position:relative; z-index:1;}}
-      .orbit {{position:absolute; width:180px; right:1rem; top:3rem; opacity:.2; pointer-events:none;}}
-    }}
-    @media(max-width:800px) {{
-      .hero {{padding:2rem;}} .hero-grid {{grid-template-columns:1fr;}}
+      .orbit {{position:absolute; width:180px; right:1rem; top:3rem; opacity:.35; pointer-events:none;}}
+      [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has(.tile) > [data-testid="stColumn"] {{
+        flex-basis:calc(50% - 1rem);
+      }}
+      [data-testid="stMain"] [data-testid="stHorizontalBlock"]:has([data-testid="stDownloadButton"]) > [data-testid="stColumn"] {{
+        flex-basis:100%;
+      }}
       .agent-flow {{grid-template-columns:repeat(2,minmax(0,1fr));}}
       .agent-node:nth-child(2):after {{display:none;}}
     }}
+    @media(max-width:800px) {{
+      .hero {{padding:2rem;}} .hero-grid {{grid-template-columns:1fr;}}
+    }}
+    @media(max-width:640px) {{
+      .stApp {{--block-gap:1.25rem;}}
+      .block-container {{padding:4.5rem 1.25rem 2.5rem;}}
+      [data-testid="stForm"] {{padding:1.25rem;}}
+      [data-testid="stMain"] [data-testid="stColumn"] {{min-width:100%;}}
+      .tile {{min-height:0;}}
+      .footer {{margin-top:2.5rem; padding-top:1.25rem; line-height:1.7;}}
+    }}
     @media(max-width:480px) {{
-      .block-container {{padding-top:4rem;}} .hero {{padding:1.5rem;}}
+      .hero {{padding:1.5rem;}}
+      .hero-meta {{gap:.75rem 1.25rem; margin-top:1.5rem; line-height:1.7;}}
       .agent-flow {{grid-template-columns:1fr;}} .agent-node:not(:last-child):after {{display:none;}}
     }}
     @media (prefers-reduced-motion: reduce) {{*, *:before, *:after {{animation-duration:.01ms!important; transition:none!important;}}}}
+    @media (prefers-reduced-motion: reduce) {{
+      .orbit-ring.third, .orbit-particles {{animation:none!important;}}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -528,7 +625,7 @@ def make_docx(record):
 
 def show_report(record, key):
     st.markdown('<div class="eyebrow">Research complete</div>', unsafe_allow_html=True)
-    title_col, download_col = st.columns([3, 1])
+    title_col, download_col = st.columns([3, 1], gap="medium")
     with title_col:
         st.title(record["topic"])
     with download_col:
@@ -598,21 +695,21 @@ def home():
           <div class="eyebrow">Your research, illuminated</div>
           <h1>Go deeper.<br><span>See clearer.</span></h1>
           <p>From a question to a considered report. Meet your team of AI research agents, working together to find, read, write and review.</p>
-          <div class="hero-meta"><span><b>04</b> specialized agents</span><span><b>01</b> connected workflow</span></div>
+          <div class="hero-meta"><span><b style="font-size: 2.2em;">04</b> specialized agents</span><span><b style="font-size: 2.2em;">01</b> connected workflow</span></div>
         </div>
         <div class="orbit" aria-hidden="true">
           <div class="orbit-ring third"></div><div class="orbit-ring"></div><div class="orbit-ring second"></div>
-          <div class="orbit-core"><span class="logo-glyph">L</span></div><div class="orbit-dot"></div><div class="orbit-dot two"></div><div class="orbit-dot three"></div>
+          <div class="orbit-core"><span class="logo-glyph">L</span></div>
+          <div class="orbit-particles"><div class="orbit-dot"></div><div class="orbit-dot two"></div><div class="orbit-dot three"></div></div>
         </div>
       </div>
     </div>
     """, unsafe_allow_html=True)
-    st.write("")
     if st.button("Start a new research brief  →", type="primary"):
         go("New Research")
     st.markdown('<div class="section-label"><span class="eyebrow">Your research team</span></div>', unsafe_allow_html=True)
     st.markdown("### Four perspectives. One clear picture.")
-    columns = st.columns(4)
+    columns = st.columns(4, gap="medium")
     for index, (column, (name, description)) in enumerate(zip(columns, STAGES.values()), 1):
         icon = ("⌕", "◈", "✎", "✧")[index - 1]
         column.markdown(
@@ -637,6 +734,7 @@ def new_research():
         context = st.text_area(
             "Additional context or instructions (optional)",
             placeholder="Add a region, audience, timeframe, or angle...",
+            height=160,
         )
         st.caption("Research depth is determined by the existing pipeline; no separate depth control is available.")
         submitted = st.form_submit_button("Launch research  →", type="primary", disabled=running)

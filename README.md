@@ -10,6 +10,8 @@ Lumen is a multi-agent research assistant that searches the web, reads sources, 
 - Agent progress, research lounge, and light/dark themes
 - Downloadable Word reports and session-only research history
 
+The UI uses locally bundled Space Grotesk (SIL Open Font License; see [font license](assets/fonts/OFL.txt)), with system-font fallbacks for unsupported characters.
+
 ## Run locally
 
 1. Create a Python virtual environment and install dependencies:
